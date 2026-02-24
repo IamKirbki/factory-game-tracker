@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 import { BetterSqlite3Adapter } from '@iamkirbki/database-handler-better-sqlite3';
 import { Container } from '@iamkirbki/database-handler-core';
+import router from '../src/backend/routes'
+import apiRouter from '../src/backend/routes/api'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -15,6 +17,9 @@ Object.assign(globalThis, { __filename, __dirname })
 const server = express()
 server.use(cors())
 server.use(express.json())
+
+server.use("/", router)
+server.use("/api", apiRouter)
 
 async function initDatabase() {
   const dbFolder = app.getPath('userData');
@@ -32,13 +37,13 @@ async function initDatabase() {
     Container.getInstance().registerAdapter('default', adapter, true);
     console.log('✅ SQLite Connected');
 
-    const migrationPath = app.isPackaged 
-      ? path.join(process.resourcesPath, '/src/migrations/migration.sql') 
+    const migrationPath = app.isPackaged
+      ? path.join(process.resourcesPath, '/src/migrations/migration.sql')
       : path.join(__dirname, '../src/migrations/migration.sql');
-      
+
     if (fs.existsSync(migrationPath)) {
       const migrationSQL = fs.readFileSync(migrationPath, 'utf-8');
-      for(const statement of migrationSQL.split(';')) {
+      for (const statement of migrationSQL.split(';')) {
         if (statement.trim()) {
           (await adapter.prepare(statement.trim())).run();
         }
@@ -52,17 +57,7 @@ async function initDatabase() {
   }
 }
 
-server.get('/api/status', async (_req, res) => {
-  try {
-    res.json({
-      status: 'Online',
-      dbTime: new Date().toISOString(),
-      message: 'Hello from Express inside Electron!'
-    })
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message })
-  }
-})
+
 
 process.env.DIST = path.join(__dirname, './dist')
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')

@@ -14,12 +14,14 @@
     "@iamkirbki/database-handler-core": "^4.4.4",
     "@tailwindcss/vite": "^4.2.1",
     "@xyflow/react": "^12.10.1",
+    "axios": "^1.13.5",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "lucide-react": "^0.575.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "tailwindcss": "^4.2.1"
+    "tailwindcss": "^4.2.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

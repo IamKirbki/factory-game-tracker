@@ -25,6 +25,7 @@ import { snapToNodes } from "./utils/snapUtils";
 import { PanelLeft, PanelRight } from "lucide-react";
 import { AppNode, MachineData } from "./types/factory";
 import { CreateMachineModal } from "./components/CreateMachineModal";
+import { createMachine } from "./api/MachineApi";
 
 const nodeTypes: NodeTypes = { machine: MachineNode };
 
@@ -36,14 +37,20 @@ function PlaygroundCanvas() {
   const [leftVisible, setLeftVisible] = useState(true);
   const [rightVisible, setRightVisible] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sidebarRefresh, setSidebarRefresh] = useState(0);
 
   const handleCreateMachine = (data: {
     name: string;
     multiplier: number;
     image: File | null;
   }) => {
-    console.log("User created machine:", data);
-    // This is where you will add your logic to save to dummy data or DB
+    createMachine({
+      name: data.name,
+      crafting_speed_multiplier: data.multiplier,
+      image: data.image,
+    })
+
+    setSidebarRefresh((prev) => prev + 1);
   };
 
   const onUpdateNode = useCallback(
@@ -51,14 +58,12 @@ function PlaygroundCanvas() {
       setNodes((nds) =>
         nds.map((node) => {
           if (node.id === id) {
-            // Merge the existing data with the new configuration
             return { ...node, data: { ...node.data, ...newData } };
           }
           return node;
         }),
       );
 
-      // Also update the selectedNode state so the Inspector updates immediately
       setSelectedNode((prev) => {
         if (prev?.id === id) {
           return { ...prev, data: { ...prev.data, ...newData } };
@@ -161,6 +166,7 @@ function PlaygroundCanvas() {
           e.dataTransfer.setData("application/reactflow", type);
           e.dataTransfer.effectAllowed = "move";
         }}
+        refreshKey={sidebarRefresh}
       />
 
       <main className="flex-1 relative flex flex-col">
