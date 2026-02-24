@@ -16,7 +16,11 @@ export default defineConfig({
         vite: {
           build: {
             rollupOptions: {
-              external: ['pg-native']
+              external: [
+                'better-sqlite3',
+                '@iamkirbki/database-handler-better-sqlite3',
+                '@iamkirbki/database-handler-core'
+              ]
             }
           }
         }

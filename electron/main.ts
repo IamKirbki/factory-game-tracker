@@ -2,28 +2,58 @@ import { app, BrowserWindow } from 'electron'
 import path from 'node:path'
 import express from 'express'
 import cors from 'cors'
-import { Pool } from 'pg'
 import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
+import { BetterSqlite3Adapter } from '@iamkirbki/database-handler-better-sqlite3';
+import { Container } from '@iamkirbki/database-handler-core';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// --- EXPRESS & POSTGRES CONFIG ---
+Object.assign(globalThis, { __filename, __dirname })
+
 const server = express()
 server.use(cors())
 server.use(express.json())
 
-// const pool = new Pool({
-//   user: 'user',
-//   host: 'localhost',
-//   database: 'factory_db',
-//   password: 'password',
-//   port: 5432,
-// })
+async function initDatabase() {
+  const dbFolder = app.getPath('userData');
+  const dbPath = path.join(dbFolder, "factory_game_tracker.db");
+
+  const adapter = new BetterSqlite3Adapter();
+
+  try {
+    if (!fs.existsSync(dbPath)) {
+      fs.writeFileSync(dbPath, '');
+      console.log('DB Created at:', dbPath);
+    }
+
+    await adapter.connect(dbPath);
+    Container.getInstance().registerAdapter('default', adapter, true);
+    console.log('✅ SQLite Connected');
+
+    const migrationPath = app.isPackaged 
+      ? path.join(process.resourcesPath, '/src/migrations/migration.sql') 
+      : path.join(__dirname, '../src/migrations/migration.sql');
+      
+    if (fs.existsSync(migrationPath)) {
+      const migrationSQL = fs.readFileSync(migrationPath, 'utf-8');
+      for(const statement of migrationSQL.split(';')) {
+        if (statement.trim()) {
+          (await adapter.prepare(statement.trim())).run();
+        }
+      }
+      console.log('✅ Migrations complete');
+    } else {
+      console.warn('⚠️ Migration file not found at:', migrationPath);
+    }
+  } catch (err) {
+    console.error('❌ Database Initialization Failed:', err);
+  }
+}
 
 server.get('/api/status', async (_req, res) => {
   try {
-    // const result = await pool.query('SELECT NOW()')
     res.json({
       status: 'Online',
       dbTime: new Date().toISOString(),
@@ -34,8 +64,7 @@ server.get('/api/status', async (_req, res) => {
   }
 })
 
-// --- ELECTRON WINDOW CONFIG ---
-process.env.DIST = path.join(__dirname, '../dist')
+process.env.DIST = path.join(__dirname, './dist')
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
 
 let win: BrowserWindow | null
@@ -47,6 +76,8 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
     },
   })
+
+  win.menuBarVisible = false
 
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL)
@@ -62,8 +93,9 @@ app.on('window-all-closed', () => {
   }
 })
 
-app.whenReady().then(() => {
-  // Start Express on port 3001
+app.whenReady().then(async () => {
+  await initDatabase();
+
   server.listen(3001, () => {
     console.log('🚀 Express Server running on http://localhost:3001')
   })

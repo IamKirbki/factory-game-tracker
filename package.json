@@ -10,12 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@iamkirbki/database-handler-better-sqlite3": "^4.0.7",
+    "@iamkirbki/database-handler-core": "^4.4.4",
     "@tailwindcss/vite": "^4.2.1",
     "@xyflow/react": "^12.10.1",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "lucide-react": "^0.575.0",
-    "pg": "^8.18.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwindcss": "^4.2.1"
