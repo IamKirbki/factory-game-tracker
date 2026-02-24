@@ -19,7 +19,8 @@ import require$$1$5 from "node:net";
 import require$$13 from "stream";
 import { fileURLToPath } from "node:url";
 import { BetterSqlite3Adapter } from "@iamkirbki/database-handler-better-sqlite3";
-import { Container } from "@iamkirbki/database-handler-core";
+import { Model, Container } from "@iamkirbki/database-handler-core";
+import { randomFillSync, randomUUID } from "node:crypto";
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
@@ -28978,7 +28979,7 @@ function onceStrict(fn) {
   return f;
 }
 var onceExports = once$1.exports;
-var router = { exports: {} };
+var router$1 = { exports: {} };
 var isPromise$3 = { exports: {} };
 isPromise$3.exports = isPromise$2;
 isPromise$3.exports.default = isPromise$2;
@@ -29619,8 +29620,8 @@ const deprecate$1 = depd_1("router");
 const slice = Array.prototype.slice;
 const flatten = Array.prototype.flat;
 const methods = METHODS.map((method) => method.toLowerCase());
-router.exports = Router;
-router.exports.Route = Route;
+router$1.exports = Router;
+router$1.exports.Route = Route;
 function Router(options) {
   if (!(this instanceof Router)) {
     return new Router(options);
@@ -30000,7 +30001,7 @@ function wrap(old, fn) {
     fn.apply(this, args);
   };
 }
-var routerExports = router.exports;
+var routerExports = router$1.exports;
 (function(module, exports$1) {
   /*!
    * express
@@ -32940,12 +32941,200 @@ var objectAssign = shouldUseNative() ? Object.assign : function(target, source) 
 })();
 var libExports = lib.exports;
 const cors = /* @__PURE__ */ getDefaultExportFromCjs(libExports);
+const router = express$1.Router();
+router.get("/api/status", async (_req, res2) => {
+  try {
+    res2.json({
+      status: "Online",
+      dbTime: (/* @__PURE__ */ new Date()).toISOString(),
+      message: "Hello from Express inside Electron!"
+    });
+  } catch (err) {
+    res2.status(500).json({ error: err.message });
+  }
+});
+const byteToHex = [];
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 256).toString(16).slice(1));
+}
+function unsafeStringify(arr, offset = 0) {
+  return (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + "-" + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + "-" + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + "-" + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + "-" + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
+}
+const rnds8Pool = new Uint8Array(256);
+let poolPtr = rnds8Pool.length;
+function rng() {
+  if (poolPtr > rnds8Pool.length - 16) {
+    randomFillSync(rnds8Pool);
+    poolPtr = 0;
+  }
+  return rnds8Pool.slice(poolPtr, poolPtr += 16);
+}
+const native = { randomUUID };
+function _v4(options, buf, offset) {
+  var _a;
+  options = options || {};
+  const rnds = options.random ?? ((_a = options.rng) == null ? void 0 : _a.call(options)) ?? rng();
+  if (rnds.length < 16) {
+    throw new Error("Random bytes length must be >= 16");
+  }
+  rnds[6] = rnds[6] & 15 | 64;
+  rnds[8] = rnds[8] & 63 | 128;
+  return unsafeStringify(rnds);
+}
+function v4(options, buf, offset) {
+  if (native.randomUUID && true && !options) {
+    return native.randomUUID();
+  }
+  return _v4(options);
+}
+class Machine extends Model {
+  constructor() {
+    super();
+    this.Configuration.table = "machines";
+  }
+}
+class Controller {
+  static async index() {
+    const instance = new this();
+    return await instance.index();
+  }
+  static async show(value) {
+    const instance = new this();
+    return await instance.show(value);
+  }
+  static async edit(value) {
+    const instance = new this();
+    return await instance.edit(value);
+  }
+  static async update(id, newValues) {
+    const instance = new this();
+    return await instance.update(id, newValues);
+  }
+  static async create(data) {
+    const instance = new this();
+    return await instance.create(data);
+  }
+  static async delete(id) {
+    const instance = new this();
+    return await instance.delete(id);
+  }
+}
+class MachineController extends Controller {
+  async index() {
+    return await Machine.all();
+  }
+  async show(value) {
+    return await Machine.whereId(value).first();
+  }
+  async edit(value) {
+    return await Machine.whereId(value).first();
+  }
+  async update(id, newValues) {
+    return await Machine.whereId(id).update(newValues);
+  }
+  async create(data) {
+    console.log("Creating machine with data:", data);
+    return await Machine.set({
+      ...data,
+      id: v4()
+    }).save();
+  }
+  async delete(id) {
+    const adapter = Container.getInstance().getAdapter();
+    const stmt = await adapter.prepare("DELETE FROM machines WHERE id = ?");
+    const result = await stmt.run({ id });
+    return result ? true : false;
+  }
+}
+class Item extends Model {
+  constructor() {
+    super();
+    this.Configuration.table = "machines";
+  }
+}
+class ItemController extends Controller {
+  async index() {
+    return await Item.all();
+  }
+  async show(value) {
+    return await Item.whereId(value).first();
+  }
+  async edit(value) {
+    return await Item.whereId(value).first();
+  }
+  async update(id, newValues) {
+    return await Item.whereId(id).update(newValues);
+  }
+  async create(data) {
+    return await Item.set({
+      ...data,
+      id: v4()
+    }).save();
+  }
+  async delete(id) {
+    const adapter = Container.getInstance().getAdapter();
+    const stmt = await adapter.prepare("DELETE FROM items WHERE id = ?");
+    const result = await stmt.run({ id });
+    return result ? true : false;
+  }
+}
+const apiRouter = express$1.Router();
+const registerResourceRoutes = (resourceName, controller) => {
+  apiRouter.get(`/${resourceName}`, async (_req, res2) => {
+    try {
+      const data = await controller.index();
+      res2.json(data);
+    } catch (err) {
+      res2.status(500).json({ error: err.message });
+    }
+  });
+  apiRouter.get(`/${resourceName}/:id`, async (req2, res2) => {
+    try {
+      const data = await controller.show(req2.params.id);
+      res2.json(data);
+    } catch (err) {
+      res2.status(500).json({ error: err.message });
+    }
+  });
+  apiRouter.post(`/${resourceName}`, async (req2, res2) => {
+    try {
+      const newItem = await controller.create(req2.body);
+      res2.status(201).json(newItem);
+    } catch (err) {
+      res2.status(500).json({ error: err.message });
+    }
+  });
+  apiRouter.put(`/${resourceName}/:id`, async (req2, res2) => {
+    try {
+      const updatedItem = await controller.update(req2.params.id, req2.body);
+      res2.json(updatedItem);
+    } catch (err) {
+      res2.status(500).json({ error: err.message });
+    }
+  });
+  apiRouter.delete(`/${resourceName}/:id`, async (req2, res2) => {
+    try {
+      const success = await controller.delete(req2.params.id);
+      if (success) {
+        res2.json({ message: `${resourceName} deleted successfully` });
+      } else {
+        res2.status(404).json({ error: `${resourceName} not found` });
+      }
+    } catch (err) {
+      res2.status(500).json({ error: err.message });
+    }
+  });
+};
+registerResourceRoutes("machines", MachineController);
+registerResourceRoutes("items", ItemController);
 const __filename$1 = fileURLToPath(import.meta.url);
 const __dirname$1 = path$3.dirname(__filename$1);
 Object.assign(globalThis, { __filename: __filename$1, __dirname: __dirname$1 });
 const server = express$1();
 server.use(cors());
 server.use(express$1.json());
+server.use("/", router);
+server.use("/api", apiRouter);
 async function initDatabase() {
   const dbFolder = app.getPath("userData");
   const dbPath = path$3.join(dbFolder, "factory_game_tracker.db");
@@ -32974,17 +33163,6 @@ async function initDatabase() {
     console.error("❌ Database Initialization Failed:", err);
   }
 }
-server.get("/api/status", async (_req, res2) => {
-  try {
-    res2.json({
-      status: "Online",
-      dbTime: (/* @__PURE__ */ new Date()).toISOString(),
-      message: "Hello from Express inside Electron!"
-    });
-  } catch (err) {
-    res2.status(500).json({ error: err.message });
-  }
-});
 process.env.DIST = path$3.join(__dirname$1, "./dist");
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path$3.join(process.env.DIST, "../public");
 let win;
