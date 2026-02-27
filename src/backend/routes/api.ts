@@ -5,6 +5,7 @@ import { columnType } from '@iamkirbki/database-handler-core';
 import { MachineProps } from '../models/Machine';
 import { ItemProps } from '../models/Item';
 import ItemController from '../controllers/ItemController';
+import RecipeController from '../controllers/RecipeController';
 
 const apiRouter = express.Router();
 
@@ -61,5 +62,6 @@ const registerResourceRoutes = <T extends columnType>(resourceName: string, cont
 
 registerResourceRoutes<MachineProps>('machines', MachineController);
 registerResourceRoutes<ItemProps>('items', ItemController);
+registerResourceRoutes('recipes', RecipeController)
 
 export default apiRouter;

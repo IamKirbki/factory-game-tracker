@@ -41,7 +41,6 @@ export function CreateMachineModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({ name, multiplier, image });
-    // Reset form
     setName("");
     setMultiplier(1.0);
     removeImage();
@@ -51,7 +50,6 @@ export function CreateMachineModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-800">
           <h2 className="text-white font-bold flex items-center gap-2">
             <Zap size={18} className="text-blue-500" /> CREATE NEW ASSET
@@ -65,7 +63,6 @@ export function CreateMachineModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Name Input */}
           <div>
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
               Machine Name
@@ -76,14 +73,12 @@ export function CreateMachineModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Super Smelter"
-              /* Added placeholder styling here */
               className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white 
                placeholder:text-slate-600 placeholder:italic placeholder:text-sm
                focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
 
-          {/* Multiplier Input */}
           <div>
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
               Crafting Speed Multiplier
@@ -97,7 +92,6 @@ export function CreateMachineModal({
                 value={multiplier}
                 onChange={(e) => setMultiplier(parseFloat(e.target.value))}
                 placeholder="1.0"
-                /* Added placeholder styling here */
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white 
                  placeholder:text-slate-600 placeholder:italic
                  focus:outline-none focus:border-blue-500 transition-colors pl-10"
@@ -108,7 +102,6 @@ export function CreateMachineModal({
             </div>
           </div>
 
-          {/* Image Upload */}
           <div>
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
               Machine Icon
@@ -160,7 +153,6 @@ export function CreateMachineModal({
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -171,7 +163,7 @@ export function CreateMachineModal({
             </button>
             <button
               type="submit"
-              className="flex-[2] p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs transition-all shadow-lg shadow-blue-900/20 cursor-pointer"
+              className="flex-2 p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs transition-all shadow-lg shadow-blue-900/20 cursor-pointer"
             >
               CREATE MACHINE
             </button>

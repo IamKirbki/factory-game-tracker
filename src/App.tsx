@@ -26,6 +26,8 @@ import { PanelLeft, PanelRight } from "lucide-react";
 import { AppNode, MachineData } from "./types/factory";
 import { CreateMachineModal } from "./components/CreateMachineModal";
 import { createMachine } from "./api/MachineApi";
+import { CreateRecipeModal } from "./components/CreateRecipeModal";
+import { CreateItemModal } from "./components/CreateItemModal";
 
 const nodeTypes: NodeTypes = { machine: MachineNode };
 
@@ -38,6 +40,8 @@ function PlaygroundCanvas() {
   const [rightVisible, setRightVisible] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
+  const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
+  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
 
   const handleCreateMachine = (data: {
     name: string;
@@ -48,7 +52,7 @@ function PlaygroundCanvas() {
       name: data.name,
       crafting_speed_multiplier: data.multiplier,
       image: data.image,
-    })
+    });
 
     setSidebarRefresh((prev) => prev + 1);
   };
@@ -104,6 +108,7 @@ function PlaygroundCanvas() {
     (e: React.DragEvent) => {
       e.preventDefault();
       const type = e.dataTransfer.getData("application/reactflow");
+      const machine_id = e.dataTransfer.getData("application/machine-id");
       if (!type) return;
       const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
       setNodes((nds) =>
@@ -112,6 +117,7 @@ function PlaygroundCanvas() {
           type: "machine",
           position,
           data: {
+            machine_id: machine_id,
             label: type,
             recipe: "Idle",
             speed: 1,
@@ -162,8 +168,10 @@ function PlaygroundCanvas() {
         visible={leftVisible}
         onClose={() => setLeftVisible(false)}
         onCreate={() => setIsModalOpen(true)}
-        onDragStart={(e, type) => {
+        onAddItem={() => setIsItemModalOpen(true)}
+        onDragStart={(e, type, machineId) => {
           e.dataTransfer.setData("application/reactflow", type);
+          e.dataTransfer.setData("application/machine-id", machineId);
           e.dataTransfer.effectAllowed = "move";
         }}
         refreshKey={sidebarRefresh}
@@ -218,12 +226,29 @@ function PlaygroundCanvas() {
           setNodes((nds) => nds.filter((n) => n.id !== id));
           setSelectedNode(null);
         }}
-        onUpdateNode={onUpdateNode} // Pass the function here
+        onUpdateNode={onUpdateNode}
+        onAddRecipe={() => setIsRecipeModalOpen(true)}
       />
+
       <CreateMachineModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreateMachine}
+      />
+
+      <CreateRecipeModal
+        isOpen={isRecipeModalOpen}
+        onClose={() => setIsRecipeModalOpen(false)}
+        initialMachineId={selectedNode?.data.machine_id}
+        onQuickAddItem={() => setIsItemModalOpen(true)}
+      />
+
+      <CreateItemModal
+        isOpen={isItemModalOpen}
+        onClose={() => setIsItemModalOpen(false)}
+        onItemCreated={() => {
+          setSidebarRefresh((prev) => prev + 1);
+        }}
       />
     </div>
   );

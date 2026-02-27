@@ -19,7 +19,7 @@ import require$$1$5 from "node:net";
 import require$$13 from "stream";
 import { fileURLToPath } from "node:url";
 import { BetterSqlite3Adapter } from "@iamkirbki/database-handler-better-sqlite3";
-import { Model, Container } from "@iamkirbki/database-handler-core";
+import { Model, Query, Container } from "@iamkirbki/database-handler-core";
 import { randomFillSync, randomUUID } from "node:crypto";
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x) {
@@ -25930,78 +25930,92 @@ function requireObject_getPrototypeOf() {
   Object_getPrototypeOf = $Object2.getPrototypeOf || null;
   return Object_getPrototypeOf;
 }
-var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
-var toStr = Object.prototype.toString;
-var max$1 = Math.max;
-var funcType = "[object Function]";
-var concatty = function concatty2(a, b) {
-  var arr = [];
-  for (var i = 0; i < a.length; i += 1) {
-    arr[i] = a[i];
-  }
-  for (var j = 0; j < b.length; j += 1) {
-    arr[j + a.length] = b[j];
-  }
-  return arr;
-};
-var slicy = function slicy2(arrLike, offset) {
-  var arr = [];
-  for (var i = offset, j = 0; i < arrLike.length; i += 1, j += 1) {
-    arr[j] = arrLike[i];
-  }
-  return arr;
-};
-var joiny = function(arr, joiner) {
-  var str = "";
-  for (var i = 0; i < arr.length; i += 1) {
-    str += arr[i];
-    if (i + 1 < arr.length) {
-      str += joiner;
+var implementation$1;
+var hasRequiredImplementation;
+function requireImplementation() {
+  if (hasRequiredImplementation) return implementation$1;
+  hasRequiredImplementation = 1;
+  var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
+  var toStr = Object.prototype.toString;
+  var max2 = Math.max;
+  var funcType = "[object Function]";
+  var concatty = function concatty2(a, b) {
+    var arr = [];
+    for (var i = 0; i < a.length; i += 1) {
+      arr[i] = a[i];
     }
-  }
-  return str;
-};
-var implementation$1 = function bind(that) {
-  var target = this;
-  if (typeof target !== "function" || toStr.apply(target) !== funcType) {
-    throw new TypeError(ERROR_MESSAGE + target);
-  }
-  var args = slicy(arguments, 1);
-  var bound;
-  var binder = function() {
-    if (this instanceof bound) {
-      var result = target.apply(
-        this,
+    for (var j = 0; j < b.length; j += 1) {
+      arr[j + a.length] = b[j];
+    }
+    return arr;
+  };
+  var slicy = function slicy2(arrLike, offset) {
+    var arr = [];
+    for (var i = offset, j = 0; i < arrLike.length; i += 1, j += 1) {
+      arr[j] = arrLike[i];
+    }
+    return arr;
+  };
+  var joiny = function(arr, joiner) {
+    var str = "";
+    for (var i = 0; i < arr.length; i += 1) {
+      str += arr[i];
+      if (i + 1 < arr.length) {
+        str += joiner;
+      }
+    }
+    return str;
+  };
+  implementation$1 = function bind2(that) {
+    var target = this;
+    if (typeof target !== "function" || toStr.apply(target) !== funcType) {
+      throw new TypeError(ERROR_MESSAGE + target);
+    }
+    var args = slicy(arguments, 1);
+    var bound;
+    var binder = function() {
+      if (this instanceof bound) {
+        var result = target.apply(
+          this,
+          concatty(args, arguments)
+        );
+        if (Object(result) === result) {
+          return result;
+        }
+        return this;
+      }
+      return target.apply(
+        that,
         concatty(args, arguments)
       );
-      if (Object(result) === result) {
-        return result;
-      }
-      return this;
-    }
-    return target.apply(
-      that,
-      concatty(args, arguments)
-    );
-  };
-  var boundLength = max$1(0, target.length - args.length);
-  var boundArgs = [];
-  for (var i = 0; i < boundLength; i++) {
-    boundArgs[i] = "$" + i;
-  }
-  bound = Function("binder", "return function (" + joiny(boundArgs, ",") + "){ return binder.apply(this,arguments); }")(binder);
-  if (target.prototype) {
-    var Empty = function Empty2() {
     };
-    Empty.prototype = target.prototype;
-    bound.prototype = new Empty();
-    Empty.prototype = null;
-  }
-  return bound;
-};
-var implementation = implementation$1;
+    var boundLength = max2(0, target.length - args.length);
+    var boundArgs = [];
+    for (var i = 0; i < boundLength; i++) {
+      boundArgs[i] = "$" + i;
+    }
+    bound = Function("binder", "return function (" + joiny(boundArgs, ",") + "){ return binder.apply(this,arguments); }")(binder);
+    if (target.prototype) {
+      var Empty = function Empty2() {
+      };
+      Empty.prototype = target.prototype;
+      bound.prototype = new Empty();
+      Empty.prototype = null;
+    }
+    return bound;
+  };
+  return implementation$1;
+}
+var implementation = requireImplementation();
 var functionBind = Function.prototype.bind || implementation;
-var functionCall = Function.prototype.call;
+var functionCall;
+var hasRequiredFunctionCall;
+function requireFunctionCall() {
+  if (hasRequiredFunctionCall) return functionCall;
+  hasRequiredFunctionCall = 1;
+  functionCall = Function.prototype.call;
+  return functionCall;
+}
 var functionApply;
 var hasRequiredFunctionApply;
 function requireFunctionApply() {
@@ -26013,12 +26027,12 @@ function requireFunctionApply() {
 var reflectApply = typeof Reflect !== "undefined" && Reflect && Reflect.apply;
 var bind$2 = functionBind;
 var $apply$1 = requireFunctionApply();
-var $call$2 = functionCall;
+var $call$2 = requireFunctionCall();
 var $reflectApply = reflectApply;
 var actualApply = $reflectApply || bind$2.call($call$2, $apply$1);
 var bind$1 = functionBind;
 var $TypeError$4 = type;
-var $call$1 = functionCall;
+var $call$1 = requireFunctionCall();
 var $actualApply = actualApply;
 var callBindApplyHelpers = function callBindBasic(args) {
   if (args.length < 1 || typeof args[0] !== "function") {
@@ -26084,8 +26098,8 @@ function requireHasown() {
   hasRequiredHasown = 1;
   var call = Function.prototype.call;
   var $hasOwn = Object.prototype.hasOwnProperty;
-  var bind3 = functionBind;
-  hasown = bind3.call(call, $hasOwn);
+  var bind2 = functionBind;
+  hasown = bind2.call(call, $hasOwn);
   return hasown;
 }
 var undefined$1;
@@ -26133,7 +26147,7 @@ var getProto = requireGetProto();
 var $ObjectGPO = requireObject_getPrototypeOf();
 var $ReflectGPO = requireReflect_getPrototypeOf();
 var $apply = requireFunctionApply();
-var $call = functionCall;
+var $call = requireFunctionCall();
 var needsEval = {};
 var TypedArray = typeof Uint8Array === "undefined" || !getProto ? undefined$1 : getProto(Uint8Array);
 var INTRINSICS = {
@@ -26304,13 +26318,13 @@ var LEGACY_ALIASES = {
   "%WeakMapPrototype%": ["WeakMap", "prototype"],
   "%WeakSetPrototype%": ["WeakSet", "prototype"]
 };
-var bind2 = functionBind;
+var bind = functionBind;
 var hasOwn = requireHasown();
-var $concat = bind2.call($call, Array.prototype.concat);
-var $spliceApply = bind2.call($apply, Array.prototype.splice);
-var $replace = bind2.call($call, String.prototype.replace);
-var $strSlice = bind2.call($call, String.prototype.slice);
-var $exec = bind2.call($call, RegExp.prototype.exec);
+var $concat = bind.call($call, Array.prototype.concat);
+var $spliceApply = bind.call($apply, Array.prototype.splice);
+var $replace = bind.call($call, String.prototype.replace);
+var $strSlice = bind.call($call, String.prototype.slice);
+var $exec = bind.call($call, RegExp.prototype.exec);
 var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
 var reEscapeChar = /\\(\\)?/g;
 var stringToPath = function stringToPath2(string) {
@@ -32667,8 +32681,8 @@ var expressExports = express$2.exports;
  * Copyright(c) 2014-2015 Douglas Christopher Wilson
  * MIT Licensed
  */
-var express = expressExports;
-const express$1 = /* @__PURE__ */ getDefaultExportFromCjs(express);
+var express$1 = expressExports;
+const express = /* @__PURE__ */ getDefaultExportFromCjs(express$1);
 var lib = { exports: {} };
 /*
 object-assign
@@ -32941,7 +32955,7 @@ var objectAssign = shouldUseNative() ? Object.assign : function(target, source) 
 })();
 var libExports = lib.exports;
 const cors = /* @__PURE__ */ getDefaultExportFromCjs(libExports);
-const router = express$1.Router();
+const router = express.Router();
 router.get("/api/status", async (_req, res2) => {
   try {
     res2.json({
@@ -33033,23 +33047,27 @@ class MachineController extends Controller {
     return await Machine.whereId(id).update(newValues);
   }
   async create(data) {
-    console.log("Creating machine with data:", data);
     return await Machine.set({
       ...data,
       id: v4()
     }).save();
   }
   async delete(id) {
-    const adapter = Container.getInstance().getAdapter();
-    const stmt = await adapter.prepare("DELETE FROM machines WHERE id = ?");
-    const result = await stmt.run({ id });
-    return result ? true : false;
+    const query2 = await new Query({
+      tableName: "machines",
+      query: "DELETE FROM machines WHERE id = ?",
+      parameters: {
+        id
+      }
+    });
+    query2.Run();
+    return query2 ? true : false;
   }
 }
 class Item extends Model {
   constructor() {
     super();
-    this.Configuration.table = "machines";
+    this.Configuration.table = "items";
   }
 }
 class ItemController extends Controller {
@@ -33072,13 +33090,158 @@ class ItemController extends Controller {
     }).save();
   }
   async delete(id) {
-    const adapter = Container.getInstance().getAdapter();
-    const stmt = await adapter.prepare("DELETE FROM items WHERE id = ?");
-    const result = await stmt.run({ id });
-    return result ? true : false;
+    const query2 = new Query({
+      tableName: "items",
+      query: "DELETE FROM items WHERE id = ?",
+      parameters: {
+        id
+      }
+    });
+    query2.Run();
+    return query2 ? true : false;
   }
 }
-const apiRouter = express$1.Router();
+class RecipeInput extends Model {
+  constructor() {
+    super();
+    this.Configuration.table = "recipe_inputs";
+  }
+}
+class RecipeOutput extends Model {
+  constructor() {
+    super();
+    this.Configuration.table = "recipe_outputs";
+  }
+}
+class Recipe extends Model {
+  constructor() {
+    super();
+    this.Configuration.table = "recipes";
+  }
+  RecipeInputs() {
+    return this.hasMany(new RecipeInput(), "recipe_id", "id");
+  }
+  RecipeOutputs() {
+    return this.hasMany(new RecipeOutput(), "recipe_id", "id");
+  }
+}
+class RecipeInputController extends Controller {
+  index() {
+    throw new Error("Method not implemented.");
+  }
+  show(value) {
+    throw new Error("Method not implemented.");
+  }
+  edit(value) {
+    throw new Error("Method not implemented.");
+  }
+  update(id, newValues) {
+    throw new Error("Method not implemented.");
+  }
+  async create(data) {
+    return await RecipeInput.set(data).save();
+  }
+  delete(id) {
+    throw new Error("Method not implemented.");
+  }
+}
+class RecipeOutputController extends Controller {
+  index() {
+    throw new Error("Method not implemented.");
+  }
+  show(value) {
+    throw new Error("Method not implemented.");
+  }
+  edit(value) {
+    throw new Error("Method not implemented.");
+  }
+  update(id, newValues) {
+    throw new Error("Method not implemented.");
+  }
+  async create(data) {
+    return await RecipeOutput.set(data).save();
+  }
+  delete(id) {
+    throw new Error("Method not implemented.");
+  }
+}
+class RecipeController extends Controller {
+  index() {
+    const recipe = new Recipe();
+    recipe.with("RecipeInputs").with("RecipeOutputs");
+    return recipe.all();
+  }
+  async show(machineId) {
+    const recipe = new Recipe();
+    recipe.with("RecipeInputs").with("RecipeOutputs");
+    const recipes = await recipe.where({ machine_id: machineId }).all();
+    await Promise.all(
+      recipes.map(async (r) => {
+        if (!Array.isArray(r.values.recipe_inputs)) {
+          r.values.recipe_inputs = [r.values.recipe_inputs];
+        }
+        r.values.recipe_inputs = await Promise.all(
+          r.values.recipe_inputs.map(async (input) => {
+            const item = await ItemController.show(input.item_id);
+            return {
+              ...input,
+              item: item.values
+            };
+          })
+        );
+        if (!Array.isArray(r.values.recipe_outputs)) {
+          r.values.recipe_outputs = [r.values.recipe_outputs];
+        }
+        r.values.recipe_outputs = await Promise.all(
+          r.values.recipe_outputs.map(async (output) => {
+            const item = await ItemController.show(output.item_id);
+            return {
+              ...output,
+              item: item.values
+            };
+          })
+        );
+      })
+    );
+    return recipes;
+  }
+  edit(value) {
+    throw new Error("Method not implemented.");
+  }
+  update(id, newValues) {
+    throw new Error("Method not implemented.");
+  }
+  async create(data) {
+    var _a;
+    console.log(data);
+    const recipe = await Recipe.set({
+      id: v4(),
+      name: data.name,
+      machine_id: data.machine_id,
+      craft_time_seconds: data.craft_time_seconds
+    }).save();
+    if (!((_a = recipe == null ? void 0 : recipe.values) == null ? void 0 : _a.id)) {
+      throw new Error("Failed to create recipe");
+    }
+    data.inputs.forEach((input) => {
+      RecipeInputController.create({
+        ...input,
+        recipe_id: recipe.values.id
+      });
+    });
+    data.outputs.forEach((output) => {
+      RecipeOutputController.create({
+        ...output,
+        recipe_id: recipe.values.id
+      });
+    });
+    return recipe;
+  }
+  delete(id) {
+    throw new Error("Method not implemented.");
+  }
+}
+const apiRouter = express.Router();
 const registerResourceRoutes = (resourceName, controller) => {
   apiRouter.get(`/${resourceName}`, async (_req, res2) => {
     try {
@@ -33127,12 +33290,13 @@ const registerResourceRoutes = (resourceName, controller) => {
 };
 registerResourceRoutes("machines", MachineController);
 registerResourceRoutes("items", ItemController);
+registerResourceRoutes("recipes", RecipeController);
 const __filename$1 = fileURLToPath(import.meta.url);
 const __dirname$1 = path$3.dirname(__filename$1);
 Object.assign(globalThis, { __filename: __filename$1, __dirname: __dirname$1 });
-const server = express$1();
+const server = express();
 server.use(cors());
-server.use(express$1.json());
+server.use(express.json());
 server.use("/", router);
 server.use("/api", apiRouter);
 async function initDatabase() {
@@ -33147,6 +33311,7 @@ async function initDatabase() {
     await adapter.connect(dbPath);
     Container.getInstance().registerAdapter("default", adapter, true);
     console.log("✅ SQLite Connected");
+    Container.getInstance().logging = true;
     const migrationPath = app.isPackaged ? path$3.join(process.resourcesPath, "/src/migrations/migration.sql") : path$3.join(__dirname$1, "../src/migrations/migration.sql");
     if (fs$2.existsSync(migrationPath)) {
       const migrationSQL = fs$2.readFileSync(migrationPath, "utf-8");

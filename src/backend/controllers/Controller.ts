@@ -2,7 +2,7 @@ import { columnType, Model } from "@iamkirbki/database-handler-core";
 
 export default abstract class Controller<Type extends columnType> {
   abstract index(): Promise<Model<Type>[]>;
-  abstract show(value: string | number): Promise<Model<Type>>;
+  abstract show(value: string | number): Promise<Model<Type> | Model<Type>[]>;
   abstract edit(value: string | number): Promise<Model<Type>>;
   abstract update(id: string | number, newValues: Type): Promise<Model<Type>>;
   abstract create(data: Type): Promise<Model<Type>>;
@@ -18,7 +18,7 @@ export default abstract class Controller<Type extends columnType> {
   public static async show<StaticType extends columnType>(
     this: new () => Controller<StaticType>,
     value: string | number,
-  ): Promise<Model<StaticType>> {
+  ): Promise<Model<StaticType> | Model<StaticType>[]> {
     const instance = new this();
     return await instance.show(value);
   }

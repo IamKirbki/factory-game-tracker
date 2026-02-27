@@ -37,6 +37,8 @@ async function initDatabase() {
     Container.getInstance().registerAdapter('default', adapter, true);
     console.log('✅ SQLite Connected');
 
+    Container.getInstance().logging = true;
+
     const migrationPath = app.isPackaged
       ? path.join(process.resourcesPath, '/src/migrations/migration.sql')
       : path.join(__dirname, '../src/migrations/migration.sql');

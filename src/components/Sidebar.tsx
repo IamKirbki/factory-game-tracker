@@ -1,4 +1,11 @@
-import { Database, ChevronLeft, Box, Plus, Search } from "lucide-react";
+import {
+  Database,
+  ChevronLeft,
+  Box,
+  Plus,
+  Search,
+  Package,
+} from "lucide-react"; // Added Package
 import { useEffect, useState, useMemo } from "react";
 import { getMachines } from "../api/MachineApi";
 
@@ -6,7 +13,8 @@ interface SidebarProps {
   visible: boolean;
   onClose: () => void;
   onCreate: () => void;
-  onDragStart: (e: React.DragEvent, type: string) => void;
+  onAddItem: () => void;
+  onDragStart: (e: React.DragEvent, type: string, machineId: string) => void;
   refreshKey?: number;
 }
 
@@ -23,32 +31,44 @@ export function Sidebar({
   visible,
   onClose,
   onCreate,
+  onAddItem,
   onDragStart,
   refreshKey = 0,
 }: SidebarProps) {
   const [machines, setMachines] = useState(MACHINE_TEMPLATES);
+  const [items, setItems] = useState<{ id: string; name: string }[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     getMachines()
       .then((data) => {
-        const machineTemplates = data.map((m: { id: string; name: string }) => ({
-          id: m.id,
-          name: m.name,
-        }));
+        const machineTemplates = data.map(
+          (m: { id: string; name: string }) => ({
+            id: m.id,
+            name: m.name,
+          }),
+        );
         setMachines(machineTemplates);
       })
-      .catch((err) => {
-        console.error("Failed to fetch machines:", err);
-      });
+      .catch((err) => console.error("Failed to fetch machines:", err));
+
+    fetch("http://localhost:3001/api/items")
+      .then((res) => res.json())
+      .then((data) => setItems(data))
+      .catch((err) => console.error("Failed to fetch items:", err));
   }, [refreshKey]);
 
   const filteredMachines = useMemo(() => {
-    return machines.filter((m) =>{
-      console.log("Filtering machine:", m.name, "with query:", searchQuery)
-      return m.name.toLowerCase().includes(searchQuery.toLowerCase())
-    });
+    return machines.filter((m) =>
+      m.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
   }, [machines, searchQuery]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((i) =>
+      i.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [items, searchQuery]);
 
   return (
     <aside
@@ -56,7 +76,6 @@ export function Sidebar({
         visible ? "w-64" : "w-0"
       }`}
     >
-      {/* Header */}
       <div className="p-4 border-b border-slate-800 font-bold text-white flex items-center justify-between text-sm min-w-[256px]">
         <div className="flex items-center gap-2">
           <Database size={16} className="text-blue-500" /> LIBRARY
@@ -69,21 +88,18 @@ export function Sidebar({
         </button>
       </div>
 
-      {/* Main Container with Custom Scrollbar */}
       <div className="p-4 space-y-4 flex-1 overflow-y-auto min-w-[256px] custom-scrollbar">
-        {/* Create Button */}
         <button
           onClick={onCreate}
           className="w-full flex items-center justify-center gap-2 p-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold transition-all shadow-lg shadow-blue-900/20 cursor-pointer active:scale-95"
         >
-          <Plus size={14} /> CREATE NEW ASSET
+          <Plus size={14} /> CREATE NEW MACHINE
         </button>
 
-        {/* Search Input Field (X button removed) */}
         <div className="relative group">
-          <Search 
-            size={14} 
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" 
+          <Search
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors"
           />
           <input
             type="text"
@@ -94,33 +110,61 @@ export function Sidebar({
           />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">
-              {searchQuery ? `Results (${filteredMachines.length})` : "Templates"}
+              Machines
             </p>
-            
             <div className="space-y-2">
-              {filteredMachines.length > 0 ? (
-                filteredMachines.map((m) => (
+              {filteredMachines.map((m) => (
+                <div
+                  key={m.id}
+                  draggable
+                  onDragStart={(e) => onDragStart(e, m.name, m.id)}
+                  className="p-3 bg-slate-800 border border-slate-700 rounded-md cursor-grab active:cursor-grabbing hover:border-blue-500 transition-all flex items-center justify-between group text-sm text-slate-200"
+                >
+                  <div className="flex items-center gap-3">
+                    <Box
+                      size={14}
+                      className="group-hover:text-blue-400 transition-colors"
+                    />
+                    <span>{m.name}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Items Catalog
+              </p>
+              <button
+                onClick={onAddItem}
+                className="p-1 hover:bg-slate-800 rounded text-orange-500 transition-colors"
+                title="Add New Item"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {filteredItems.length > 0 ? (
+                filteredItems.map((item) => (
                   <div
-                    key={m.id}
-                    draggable
-                    onDragStart={(e) => onDragStart(e, m.name)}
-                    className="p-3 bg-slate-800 border border-slate-700 rounded-md cursor-grab active:cursor-grabbing hover:border-blue-500 transition-all flex items-center justify-between group text-sm"
+                    key={item.id}
+                    className="p-3 bg-slate-800/50 border border-slate-800 rounded-md hover:border-orange-500/50 transition-all flex items-center gap-3 text-sm text-slate-400"
                   >
-                    <div className="flex items-center gap-3">
-                      <Box
-                        size={14}
-                        className="group-hover:text-blue-400 transition-colors"
-                      />
-                      <span>{m.name}</span>
-                    </div>
+                    <Package size={14} className="text-orange-500/70" />
+                    <span>{item.name}</span>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-xs text-slate-600 italic">No assets found</p>
+                <div className="text-center py-4 border border-dashed border-slate-800 rounded-md">
+                  <p className="text-[10px] text-slate-600 italic">
+                    No items found
+                  </p>
                 </div>
               )}
             </div>

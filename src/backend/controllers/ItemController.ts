@@ -1,4 +1,4 @@
-import { Container, Model } from "@iamkirbki/database-handler-core";
+import { Model, Query } from "@iamkirbki/database-handler-core";
 import { v4 as uuidv4 } from 'uuid';
 import Item, { ItemProps } from "../models/Item";
 import Controller from "./Controller";
@@ -23,9 +23,15 @@ export default class ItemController extends Controller<ItemProps> {
         }).save();
     }
     async delete(id: string | number): Promise<boolean> {
-        const adapter = Container.getInstance().getAdapter();
-        const stmt = await adapter.prepare("DELETE FROM items WHERE id = ?");
-        const result = await stmt.run({ id });
-        return result ? true : false;
+        const query = new Query({
+            tableName: "items",
+            query: "DELETE FROM items WHERE id = ?",
+            parameters: {
+                id: id,
+            },
+        })
+
+        query.Run();
+        return query ? true : false;
     }
 }

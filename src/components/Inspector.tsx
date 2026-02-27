@@ -1,5 +1,14 @@
-import { ChevronRight, Trash2, Copy, Settings, Check } from "lucide-react";
+import {
+  ChevronRight,
+  Trash2,
+  Copy,
+  Settings,
+  Check,
+  Plus,
+} from "lucide-react";
 import { AppNode, MachineData } from "../types/factory";
+import { useEffect, useState } from "react";
+import { getRecipes } from "../api/RecipeApi";
 
 interface InspectorProps {
   visible: boolean;
@@ -7,6 +16,7 @@ interface InspectorProps {
   onClose: () => void;
   onDelete: (id: string) => void;
   onUpdateNode: (id: string, data: Partial<MachineData>) => void;
+  onAddRecipe: () => void;
 }
 
 const RECIPES = [
@@ -23,7 +33,20 @@ export function Inspector({
   onClose,
   onDelete,
   onUpdateNode,
+  onAddRecipe,
 }: InspectorProps) {
+  const [recipes, setRecipes] =
+    useState<{ name: string; speed: number; energy: number }[]>(RECIPES);
+
+  useEffect(() => {
+    if (selectedNode) {
+      getRecipes(selectedNode.data.machine_id).then((data) => {
+        console.log("Fetched recipes:", data.data);
+        setRecipes(data.data);
+      });
+    }
+  }, [selectedNode]);
+
   const handleRecipeSelect = (
     recipeName: string,
     speed: number,
@@ -31,6 +54,7 @@ export function Inspector({
   ) => {
     if (!selectedNode) return;
     onUpdateNode(selectedNode.id, {
+      machine_id: selectedNode.data.machine_id,
       recipe: recipeName,
       speed: speed,
       energy: energy,
@@ -75,7 +99,7 @@ export function Inspector({
 
               {isRecipeEmpty ? (
                 <div className="space-y-2">
-                  {RECIPES.map((r) => (
+                  {recipes.map((r) => (
                     <button
                       key={r.name}
                       onClick={() =>
@@ -90,6 +114,14 @@ export function Inspector({
                       />
                     </button>
                   ))}
+                  <div className="p-4 border-t border-slate-800 mt-auto">
+                    <button
+                      onClick={onAddRecipe}
+                      className="w-full flex items-center justify-center gap-2 bg-orange-500/10 border border-orange-500/50 text-orange-500 hover:bg-orange-500 hover:text-white transition-all p-2 rounded-md text-sm font-medium"
+                    >
+                      <Plus size={16} /> Add New Recipe
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
