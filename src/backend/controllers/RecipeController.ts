@@ -5,7 +5,6 @@ import { RecipeIOProps } from "../models/RecipeInput";
 import RecipeInputController from "./RecipeInputController";
 import { v4 as uuidv4 } from "uuid";
 import RecipeOutputController from "./RecipeOutputController";
-import ItemController from "./ItemController";
 
 export type createRecipeProps = {
     id: string;
@@ -27,38 +26,10 @@ export default class RecipeController extends Controller<RecipeProps> {
         const recipe = new Recipe();
         recipe.with("RecipeInputs").with('RecipeOutputs');
         const recipes = await recipe.where({ machine_id: machineId }).all();
-
-        await Promise.all(
-            recipes.map(async (r) => {
-                if (!Array.isArray(r.values.recipe_inputs)) {
-                    r.values.recipe_inputs = [r.values.recipe_inputs];
-                }
-                r.values.recipe_inputs = await Promise.all(
-                    r.values.recipe_inputs.map(async (input: RecipeIOProps) => {
-                        const item = await ItemController.show(input.item_id);
-                        return {
-                            ...input,
-                            item: item.values,
-                        };
-                    })
-                );
-
-                if (!Array.isArray(r.values.recipe_outputs)) {
-                    r.values.recipe_outputs = [r.values.recipe_outputs];
-                }
-                r.values.recipe_outputs = await Promise.all(
-                    r.values.recipe_outputs.map(async (output: RecipeIOProps) => {
-                        const item = await ItemController.show(output.item_id);
-                        return {
-                            ...output,
-                            item: item.values,
-                        };
-                    })
-                );
-            })
-        );
-
-        return recipes;
+        let res = recipes.map(r => r.values);
+        res = this.dedupeRecipes(res);
+        console.log(res);
+        return res;
     }
 
     edit(value: string | number): Promise<Model<RecipeProps>> {
@@ -103,4 +74,34 @@ export default class RecipeController extends Controller<RecipeProps> {
         throw new Error("Method not implemented.");
     }
 
+
+    dedupeRecipes(recipes: any[]) {
+        const map = new Map<string, any>();
+
+        for (const recipe of recipes) {
+            const existing = map.get(recipe.id);
+
+            if (!existing) {
+                // clone to avoid reference madness
+                map.set(recipe.id, {
+                    ...recipe,
+                    recipe_inputs: [recipe.recipe_inputs],
+                    recipe_outputs: [recipe.recipe_outputs],
+                });
+                continue;
+            }
+
+            // Merge inputs
+            if (recipe.recipe_inputs) {
+                existing.recipe_inputs.push(recipe.recipe_inputs);
+            }
+
+            // Merge outputs
+            if (recipe.recipe_outputs) {
+                existing.recipe_outputs.push(recipe.recipe_outputs);
+            }
+        }
+
+        return Array.from(map.values());
+    }
 }

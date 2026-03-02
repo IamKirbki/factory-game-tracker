@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -6,28 +6,23 @@ import {
   Background,
   useNodesState,
   useEdgesState,
-  addEdge,
-  Connection,
   Edge,
-  OnConnect,
   NodeTypes,
   ReactFlowProvider,
   useReactFlow,
-  applyNodeChanges,
-  NodeChange,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
 import { MachineNode } from "./components/MachineNode";
 import { Sidebar } from "./components/Sidebar";
 import { Inspector } from "./components/Inspector";
-import { snapToNodes } from "./utils/snapUtils";
 import { PanelLeft, PanelRight } from "lucide-react";
 import { AppNode, MachineData } from "./types/factory";
 import { CreateMachineModal } from "./components/CreateMachineModal";
 import { createMachine } from "./api/MachineApi";
 import { CreateRecipeModal } from "./components/CreateRecipeModal";
 import { CreateItemModal } from "./components/CreateItemModal";
+import { useCanvasInteractions } from "./hooks/useCanvasInteractions";
 
 const nodeTypes: NodeTypes = { machine: MachineNode };
 
@@ -35,7 +30,6 @@ function PlaygroundCanvas() {
   const [nodes, setNodes] = useNodesState<AppNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [selectedNode, setSelectedNode] = useState<AppNode | null>(null);
-  const [clipboard, setClipboard] = useState<AppNode[]>([]);
   const [leftVisible, setLeftVisible] = useState(true);
   const [rightVisible, setRightVisible] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -80,87 +74,13 @@ function PlaygroundCanvas() {
 
   const { screenToFlowPosition } = useReactFlow();
 
-  const onNodesChange = useCallback(
-    (changes: NodeChange[]) => {
-      const nextChanges = changes.map((change) => {
-        if (change.type === "position" && change.position) {
-          return { ...change, position: snapToNodes(change, nodes) };
-        }
-        return change;
-      });
-      setNodes((nds) => applyNodeChanges(nextChanges, nds) as AppNode[]);
-    },
-    [nodes, setNodes],
-  );
-
-  const onConnect: OnConnect = useCallback(
-    (params: Connection) =>
-      setEdges((eds) =>
-        addEdge(
-          { ...params, animated: true, style: { stroke: "#fb923c" } },
-          eds,
-        ),
-      ),
-    [setEdges],
-  );
-
-  const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      const type = e.dataTransfer.getData("application/reactflow");
-      const machine_id = e.dataTransfer.getData("application/machine-id");
-      if (!type) return;
-      const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-      setNodes((nds) =>
-        nds.concat({
-          id: `node_${Date.now()}`,
-          type: "machine",
-          position,
-          data: {
-            machine_id: machine_id,
-            label: type,
-            recipe: "Idle",
-            speed: 1,
-            energy: 5,
-            status: "idle",
-          },
-        }),
-      );
-    },
-    [screenToFlowPosition, setNodes],
-  );
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      )
-        return;
-      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
-        const selected = nodes.filter((n) => n.selected);
-        if (selected.length) setClipboard(selected);
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === "v") {
-        if (!clipboard.length) return;
-        const newNodes = clipboard.map((n) => ({
-          ...n,
-          id: `n_${Date.now()}_${Math.random()}`,
-          position: { x: n.position.x + 40, y: n.position.y + 40 },
-          selected: true,
-        }));
-        setNodes((nds) =>
-          nds.map((n) => ({ ...n, selected: false })).concat(newNodes),
-        );
-      }
-      if (e.key === "Delete" || e.key === "Backspace") {
-        setNodes((nds) => nds.filter((n) => !n.selected));
-        setSelectedNode(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [nodes, clipboard, setNodes]);
+  const { onNodesChange, onConnect, onDrop } = useCanvasInteractions({
+    nodes,
+    setNodes,
+    setEdges,
+    setSelectedNode,
+    screenToFlowPosition,
+  });
 
   return (
     <div className="flex h-screen w-screen bg-slate-950 text-slate-300 overflow-hidden font-sans">

@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@iamkirbki/database-handler-better-sqlite3": "^4.0.7",
-    "@iamkirbki/database-handler-core": "^4.4.4",
+    "@iamkirbki/database-handler-core": "^4.4.5",
     "@tailwindcss/vite": "^4.2.1",
     "@xyflow/react": "^12.10.1",
     "axios": "^1.13.5",

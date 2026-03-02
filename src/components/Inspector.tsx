@@ -7,8 +7,7 @@ import {
   Plus,
 } from "lucide-react";
 import { AppNode, MachineData } from "../types/factory";
-import { useEffect, useState } from "react";
-import { getRecipes } from "../api/RecipeApi";
+import { useMachineRecipes } from "../hooks/useMachineRecipes";
 
 interface InspectorProps {
   visible: boolean;
@@ -19,14 +18,6 @@ interface InspectorProps {
   onAddRecipe: () => void;
 }
 
-const RECIPES = [
-  { name: "Iron Ingot", speed: 1.0, energy: 4 },
-  { name: "Copper Ingot", speed: 1.0, energy: 4 },
-  { name: "Iron Plate", speed: 0.5, energy: 6 },
-  { name: "Iron Rod", speed: 1.0, energy: 5 },
-  { name: "Screw", speed: 2.0, energy: 7 },
-];
-
 export function Inspector({
   visible,
   selectedNode,
@@ -35,17 +26,7 @@ export function Inspector({
   onUpdateNode,
   onAddRecipe,
 }: InspectorProps) {
-  const [recipes, setRecipes] =
-    useState<{ name: string; speed: number; energy: number }[]>(RECIPES);
-
-  useEffect(() => {
-    if (selectedNode) {
-      getRecipes(selectedNode.data.machine_id).then((data) => {
-        console.log("Fetched recipes:", data.data);
-        setRecipes(data.data);
-      });
-    }
-  }, [selectedNode]);
+  const recipes = useMachineRecipes(selectedNode);
 
   const handleRecipeSelect = (
     recipeName: string,

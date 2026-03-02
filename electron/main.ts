@@ -35,7 +35,7 @@ async function initDatabase() {
 
     await adapter.connect(dbPath);
     Container.getInstance().registerAdapter('default', adapter, true);
-    console.log('✅ SQLite Connected');
+    console.log('SQLite Connected');
 
     Container.getInstance().logging = true;
 
@@ -46,16 +46,17 @@ async function initDatabase() {
     if (fs.existsSync(migrationPath)) {
       const migrationSQL = fs.readFileSync(migrationPath, 'utf-8');
       for (const statement of migrationSQL.split(';')) {
-        if (statement.trim()) {
+        if (statement.trim() !== '') {
+          console.log('Running Migration Statement:', statement.trim());
           (await adapter.prepare(statement.trim())).run();
         }
       }
-      console.log('✅ Migrations complete');
+      console.log('Migrations complete');
     } else {
-      console.warn('⚠️ Migration file not found at:', migrationPath);
+      console.warn('Migration file not found at:', migrationPath);
     }
   } catch (err) {
-    console.error('❌ Database Initialization Failed:', err);
+    console.error('Database Initialization Failed:', err);
   }
 }
 
@@ -94,7 +95,7 @@ app.whenReady().then(async () => {
   await initDatabase();
 
   server.listen(3001, () => {
-    console.log('🚀 Express Server running on http://localhost:3001')
+    console.log('Express Server running on http://localhost:3001')
   })
   createWindow()
 })

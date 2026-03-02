@@ -33121,8 +33121,14 @@ class Recipe extends Model {
   RecipeInputs() {
     return this.hasMany(new RecipeInput(), "recipe_id", "id");
   }
+  InputOutputs() {
+    return this.hasMany(new Item(), "id", "item_id", "input_items.items", "input_items");
+  }
   RecipeOutputs() {
     return this.hasMany(new RecipeOutput(), "recipe_id", "id");
+  }
+  OutputItems() {
+    return this.hasMany(new Item(), "id", "item_id", "output_items.items", "output_items");
   }
 }
 class RecipeInputController extends Controller {
@@ -33175,35 +33181,10 @@ class RecipeController extends Controller {
     const recipe = new Recipe();
     recipe.with("RecipeInputs").with("RecipeOutputs");
     const recipes = await recipe.where({ machine_id: machineId }).all();
-    await Promise.all(
-      recipes.map(async (r) => {
-        if (!Array.isArray(r.values.recipe_inputs)) {
-          r.values.recipe_inputs = [r.values.recipe_inputs];
-        }
-        r.values.recipe_inputs = await Promise.all(
-          r.values.recipe_inputs.map(async (input) => {
-            const item = await ItemController.show(input.item_id);
-            return {
-              ...input,
-              item: item.values
-            };
-          })
-        );
-        if (!Array.isArray(r.values.recipe_outputs)) {
-          r.values.recipe_outputs = [r.values.recipe_outputs];
-        }
-        r.values.recipe_outputs = await Promise.all(
-          r.values.recipe_outputs.map(async (output) => {
-            const item = await ItemController.show(output.item_id);
-            return {
-              ...output,
-              item: item.values
-            };
-          })
-        );
-      })
-    );
-    return recipes;
+    let res2 = recipes.map((r) => r.values);
+    res2 = this.dedupeRecipes(res2);
+    console.log(res2);
+    return res2;
   }
   edit(value) {
     throw new Error("Method not implemented.");
@@ -33239,6 +33220,27 @@ class RecipeController extends Controller {
   }
   delete(id) {
     throw new Error("Method not implemented.");
+  }
+  dedupeRecipes(recipes) {
+    const map = /* @__PURE__ */ new Map();
+    for (const recipe of recipes) {
+      const existing = map.get(recipe.id);
+      if (!existing) {
+        map.set(recipe.id, {
+          ...recipe,
+          recipe_inputs: [recipe.recipe_inputs],
+          recipe_outputs: [recipe.recipe_outputs]
+        });
+        continue;
+      }
+      if (recipe.recipe_inputs) {
+        existing.recipe_inputs.push(recipe.recipe_inputs);
+      }
+      if (recipe.recipe_outputs) {
+        existing.recipe_outputs.push(recipe.recipe_outputs);
+      }
+    }
+    return Array.from(map.values());
   }
 }
 const apiRouter = express.Router();
@@ -33310,22 +33312,23 @@ async function initDatabase() {
     }
     await adapter.connect(dbPath);
     Container.getInstance().registerAdapter("default", adapter, true);
-    console.log("✅ SQLite Connected");
+    console.log("SQLite Connected");
     Container.getInstance().logging = true;
     const migrationPath = app.isPackaged ? path$3.join(process.resourcesPath, "/src/migrations/migration.sql") : path$3.join(__dirname$1, "../src/migrations/migration.sql");
     if (fs$2.existsSync(migrationPath)) {
       const migrationSQL = fs$2.readFileSync(migrationPath, "utf-8");
       for (const statement of migrationSQL.split(";")) {
-        if (statement.trim()) {
+        if (statement.trim() !== "") {
+          console.log("Running Migration Statement:", statement.trim());
           (await adapter.prepare(statement.trim())).run();
         }
       }
-      console.log("✅ Migrations complete");
+      console.log("Migrations complete");
     } else {
-      console.warn("⚠️ Migration file not found at:", migrationPath);
+      console.warn("Migration file not found at:", migrationPath);
     }
   } catch (err) {
-    console.error("❌ Database Initialization Failed:", err);
+    console.error("Database Initialization Failed:", err);
   }
 }
 process.env.DIST = path$3.join(__dirname$1, "./dist");
@@ -33354,7 +33357,7 @@ app.on("window-all-closed", () => {
 app.whenReady().then(async () => {
   await initDatabase();
   server.listen(3001, () => {
-    console.log("🚀 Express Server running on http://localhost:3001");
+    console.log("Express Server running on http://localhost:3001");
   });
   createWindow();
 });

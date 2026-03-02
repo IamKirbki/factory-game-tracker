@@ -6,8 +6,7 @@ import {
   Search,
   Package,
 } from "lucide-react"; // Added Package
-import { useEffect, useState, useMemo } from "react";
-import { getMachines } from "../api/MachineApi";
+import { useSidebarAssets } from "../hooks/useSidebarAssets";
 
 interface SidebarProps {
   visible: boolean;
@@ -18,15 +17,6 @@ interface SidebarProps {
   refreshKey?: number;
 }
 
-const MACHINE_TEMPLATES = [
-  { id: "smelter", name: "Smelter" },
-  { id: "constructor", name: "Constructor" },
-  { id: "assembler", name: "Assembler" },
-  { id: "manufacturer", name: "Manufacturer" },
-  { id: "foundry", name: "Foundry" },
-  { id: "refinery", name: "Refinery" },
-];
-
 export function Sidebar({
   visible,
   onClose,
@@ -35,40 +25,8 @@ export function Sidebar({
   onDragStart,
   refreshKey = 0,
 }: SidebarProps) {
-  const [machines, setMachines] = useState(MACHINE_TEMPLATES);
-  const [items, setItems] = useState<{ id: string; name: string }[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  useEffect(() => {
-    getMachines()
-      .then((data) => {
-        const machineTemplates = data.map(
-          (m: { id: string; name: string }) => ({
-            id: m.id,
-            name: m.name,
-          }),
-        );
-        setMachines(machineTemplates);
-      })
-      .catch((err) => console.error("Failed to fetch machines:", err));
-
-    fetch("http://localhost:3001/api/items")
-      .then((res) => res.json())
-      .then((data) => setItems(data))
-      .catch((err) => console.error("Failed to fetch items:", err));
-  }, [refreshKey]);
-
-  const filteredMachines = useMemo(() => {
-    return machines.filter((m) =>
-      m.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [machines, searchQuery]);
-
-  const filteredItems = useMemo(() => {
-    return items.filter((i) =>
-      i.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [items, searchQuery]);
+  const { searchQuery, setSearchQuery, filteredMachines, filteredItems } =
+    useSidebarAssets(refreshKey);
 
   return (
     <aside

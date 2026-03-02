@@ -74,4 +74,7 @@ CREATE TABLE IF NOT EXISTS playground_connections (
     FOREIGN KEY (playground_id) REFERENCES playground(id) ON DELETE CASCADE,
     FOREIGN KEY (from_card_id) REFERENCES playground_machine_card(id) ON DELETE CASCADE,
     FOREIGN KEY (to_card_id) REFERENCES playground_machine_card(id) ON DELETE CASCADE
-);
+)
+
+--Logistics (Belts, Pipes, etc.)
+--Power (Generators, Power Poles, etc.)

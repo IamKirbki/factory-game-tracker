@@ -12,8 +12,8 @@ importers:
         specifier: ^4.0.7
         version: 4.0.7(@types/node@25.3.0)(typescript@5.9.3)
       '@iamkirbki/database-handler-core':
-        specifier: ^4.4.4
-        version: 4.4.4(@types/node@25.3.0)(typescript@5.9.3)
+        specifier: ^4.4.5
+        version: 4.4.5(@types/node@25.3.0)(typescript@5.9.3)
       '@tailwindcss/vite':
         specifier: ^4.2.1
         version: 4.2.1(vite@5.4.21(@types/node@25.3.0)(lightningcss@1.31.1))
@@ -398,8 +398,8 @@ packages:
   '@iamkirbki/database-handler-better-sqlite3@4.0.7':
     resolution: {integrity: sha512-ysBRWYTnwBRbac2LhDuXA9rRwyjHYKpaWOPpHGWgTWc38iqDuDDKbKr1SuU9efK56GkV/lbwA4QOkhHTNpTYpg==}
 
-  '@iamkirbki/database-handler-core@4.4.4':
-    resolution: {integrity: sha512-5cMhUF7wseob8ribUfs9bM8ZwCuQUrkjkhS5pFLnjcj0LkgEERaKv27ymM0hS46/MvFFP7q7fAZOD4s2D9Nytw==}
+  '@iamkirbki/database-handler-core@4.4.5':
+    resolution: {integrity: sha512-HplwNq6qCoNjfUhXXJK8VNp1a8Z/G7bxDLU8rkHQ20QQikZHs41mhoj44NPCyCVJYKLKaUxTmiEXAHxewORJOA==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -3275,7 +3275,7 @@ snapshots:
 
   '@iamkirbki/database-handler-better-sqlite3@4.0.7(@types/node@25.3.0)(typescript@5.9.3)':
     dependencies:
-      '@iamkirbki/database-handler-core': 4.4.4(@types/node@25.3.0)(typescript@5.9.3)
+      '@iamkirbki/database-handler-core': 4.4.5(@types/node@25.3.0)(typescript@5.9.3)
       better-sqlite3: 11.10.0
     transitivePeerDependencies:
       - '@swc/core'
@@ -3283,7 +3283,7 @@ snapshots:
       - '@types/node'
       - typescript
 
-  '@iamkirbki/database-handler-core@4.4.4(@types/node@25.3.0)(typescript@5.9.3)':
+  '@iamkirbki/database-handler-core@4.4.5(@types/node@25.3.0)(typescript@5.9.3)':
     dependencies:
       ts-node: 10.9.2(@types/node@25.3.0)(typescript@5.9.3)
     transitivePeerDependencies:
